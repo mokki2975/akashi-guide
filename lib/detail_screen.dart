@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'main.dart'; // AppColors などを参照するため
+import 'main.dart';
 
 class DetailScreen extends StatefulWidget {
   final GuideItem item;
@@ -16,10 +16,9 @@ class _DetailScreenState extends State<DetailScreen> with SingleTickerProviderSt
   late AnimationController _controller;
   bool _isAnimating = false;
 
-  // アニメーションの状態を監視して、「伸びる -> 停止 -> 戻る」のサイクルを作る
   void _handleAnimationStatus(AnimationStatus status) async {
     if (status == AnimationStatus.completed && _isAnimating) {
-      await Future.delayed(const Duration(milliseconds: 800)); // 伸びきった状態で停止
+      await Future.delayed(const Duration(milliseconds: 800));
       if (mounted && _isAnimating) {
         _controller.reset();
         _controller.forward();
@@ -42,7 +41,6 @@ class _DetailScreenState extends State<DetailScreen> with SingleTickerProviderSt
     super.dispose();
   }
 
-  // Googleマップを開く関数
   Future<void> _launchMap() async {
     final String encodedQuery = Uri.encodeComponent(widget.item.locationQuery);
     final String googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$encodedQuery";
@@ -61,11 +59,9 @@ class _DetailScreenState extends State<DetailScreen> with SingleTickerProviderSt
     int lastIndex = 0;
 
     for (final Match match in regExp.allMatches(text)) {
-      // 強調箇所の前のテキストを追加
       if (match.start > lastIndex) {
         spans.add(TextSpan(text: text.substring(lastIndex, match.start)));
       }
-      // 強調箇所（「 」を含む）を追加
       spans.add(TextSpan(
         text: match.group(0),
         style: GoogleFonts.notoSansJp(
@@ -75,7 +71,6 @@ class _DetailScreenState extends State<DetailScreen> with SingleTickerProviderSt
       ));
       lastIndex = match.end;
     }
-    // 残りのテキストを追加
     if (lastIndex < text.length) {
       spans.add(TextSpan(text: text.substring(lastIndex)));
     }
@@ -106,7 +101,6 @@ class _DetailScreenState extends State<DetailScreen> with SingleTickerProviderSt
               ),
             ),
           ),
-          // コンテンツエリア
           SliverToBoxAdapter(
             child: Center(
               child: ConstrainedBox(
@@ -152,43 +146,42 @@ class _DetailScreenState extends State<DetailScreen> with SingleTickerProviderSt
                         const _RecommendationNote(),
                         const SizedBox(height: 12),
                       ],
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: _launchMap,
-                      icon: const Icon(Icons.map_outlined),
-                      label: Text(
-                        "ここへ行く（Googleマップ）",
-                        style: GoogleFonts.notoSansJp(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton.icon(
+                          onPressed: _launchMap,
+                          icon: const Icon(Icons.map_outlined),
+                          label: Text(
+                            "ここへ行く（Googleマップ）",
+                            style: GoogleFonts.notoSansJp(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryNavy,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 4,
+                          ),
                         ),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryNavy,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 4,
-                      ),
-                    ),
+                      const SizedBox(height: 100),
+                    ],
                   ),
-                  const SizedBox(height: 100),
-                ],
+                ),
               ),
             ),
-          )
-          )
-        ),
+          ),
         ],
       ),
     );
   }
 }
 
-/// 橋のシミュレーションセクション
 class _BridgeSimulationSection extends StatelessWidget {
   final AnimationController controller;
   final bool isAnimating;
@@ -260,7 +253,6 @@ class _BridgeSimulationSection extends StatelessWidget {
   }
 }
 
-/// おすすめメッセージ
 class _RecommendationNote extends StatelessWidget {
   const _RecommendationNote();
 
@@ -285,7 +277,6 @@ class _RecommendationNote extends StatelessWidget {
   }
 }
 
-/// 橋が伸びる様子を描画するカスタムペインター
 class BridgeStretchPainter extends CustomPainter {
   final double progress;
   BridgeStretchPainter(this.progress);
@@ -300,34 +291,26 @@ class BridgeStretchPainter extends CustomPainter {
     final double centerX = size.width / 2;
     final double baseY = size.height - 30;
     
-    // 基本の橋の長さ（少し短めから開始して伸びを強調）
     double baseWidth = size.width * 0.5;
-    // 伸びる量を大幅に増やして分かりやすく（最大80ピクセル程度）
     double currentWidth = baseWidth + (progress * 80);
 
     double startX = centerX - (currentWidth / 2);
     double endX = centerX + (currentWidth / 2);
 
-    // 橋脚の描画（橋脚の間隔も少し広がることで地盤の動きを表現）
     double pierOffset = 50 + (progress * 10);
     canvas.drawLine(Offset(centerX - pierOffset, baseY), Offset(centerX - pierOffset, baseY - 50), paint);
     canvas.drawLine(Offset(centerX + pierOffset, baseY), Offset(centerX + pierOffset, baseY - 50), paint);
 
-    // 橋桁（道路部分）の描画
     canvas.drawLine(Offset(startX, baseY - 45), Offset(endX, baseY - 45), paint);
     
-    // 吊り橋のケーブル（放物線）
     final path = Path();
     path.moveTo(startX, baseY - 45);
     path.quadraticBezierTo(centerX, baseY - 90, endX, baseY - 45);
     canvas.drawPath(path, paint);
 
-    // 伸びていることを示す矢印を両端に描画
     if (progress > 0) {
       final arrowPaint = Paint()..color = Colors.redAccent..strokeWidth = 2;
-      // 左矢印
       canvas.drawLine(Offset(startX, baseY - 20), Offset(startX - 15, baseY - 20), arrowPaint);
-      // 右矢印
       canvas.drawLine(Offset(endX, baseY - 20), Offset(endX + 15, baseY - 20), arrowPaint);
     }
   }
